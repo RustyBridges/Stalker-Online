@@ -103,7 +103,7 @@ public:
         void *hSrcFile = nullptr;
         void *hSrcMap = nullptr;
 #elif defined(XR_PLATFORM_POSIX)
-        int hSrcFile = 0;
+        int hSrcFile = -1; // -1 while closed: 0 is a valid descriptor
 #else
 #   error Select or add implementation for your platform
 #endif
@@ -112,6 +112,15 @@ public:
         archive() = default;
         void open();
         void close();
+
+        [[nodiscard]] bool is_open() const
+        {
+#if defined(XR_PLATFORM_WINDOWS)
+            return hSrcFile != nullptr;
+#else
+            return hSrcFile != -1;
+#endif
+        }
     };
 
     // IMPORTNT: don't replace u32 with size_t for this struct
