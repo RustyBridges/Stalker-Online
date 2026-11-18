@@ -352,6 +352,37 @@ public:
     {
         return vid_monitor_token.data();
     }
+
+    // Monitor tokens look like "1. DP-1 27\"". The display name part comes from
+    // SDL and can contain characters the console mangles when user.ltx is read
+    // back (e.g. repeated spaces get collapsed), so an exact name match can fail.
+    // Fall back to the leading index, which is what the token id is anyway.
+    void Execute(pcstr args) override
+    {
+        for (const xr_token* tok = GetToken(); tok && tok->name; ++tok)
+        {
+            if (xr_stricmp(tok->name, args) == 0)
+            {
+                *value = tok->id;
+                return;
+            }
+        }
+
+        int index;
+        if (sscanf(args, "%d", &index) == 1)
+        {
+            for (const xr_token* tok = GetToken(); tok && tok->name; ++tok)
+            {
+                if (tok->id == index)
+                {
+                    *value = tok->id;
+                    return;
+                }
+            }
+        }
+
+        InvalidSyntax();
+    }
 };
 //-----------------------------------------------------------------------
 class CCC_VidMode : public CCC_Token
