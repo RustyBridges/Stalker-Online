@@ -28,3 +28,6 @@
 [submodule "Externals/sse2rvv"]
 	path = Externals/sse2rvv
 	url = https://github.com/pattonkan/sse2rvv.git
+[submodule "Externals/enet"]
+	path = Externals/enet
+	url = https://github.com/lsalzman/enet.git

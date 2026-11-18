@@ -14,6 +14,7 @@ add_compile_options(${XRAY_DISABLE_WARNINGS})
 
 add_subdirectory(GameSpy)
 add_subdirectory(imgui-proj)
+add_subdirectory(enet-proj)
 
 if (NOT TARGET xrLuabind)
     message(FATAL_ERROR
