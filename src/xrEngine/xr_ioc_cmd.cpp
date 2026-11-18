@@ -323,6 +323,64 @@ public:
     }
 };
 
+// Copies files out of the game archives (gamedata) into a normal folder,
+// e.g. "fs_extract configs/ui/pda*.xml" -> <app data>/extracted/gamedata/configs/ui/pda.xml
+class CCC_FS_Extract : public IConsole_Command
+{
+public:
+    CCC_FS_Extract(pcstr N) : IConsole_Command(N) {}
+
+    void Execute(pcstr args) override
+    {
+        string_path mask;
+        xr_strcpy(mask, args);
+        for (char* c = mask; *c; ++c)
+        {
+            if (*c == '\\' || *c == '/')
+                *c = _DELIMITER;
+        }
+        xr_strlwr(mask);
+
+        FS_FileSet files;
+        FS.file_list(files, "$game_data$", FS_ListFiles, mask);
+        if (files.empty())
+        {
+            Msg("! fs_extract: no files in gamedata match '%s'", mask);
+            return;
+        }
+
+        u32 count = 0;
+        for (const FS_File& file : files)
+        {
+            IReader* reader = FS.r_open("$game_data$", file.name.c_str());
+            if (!reader)
+            {
+                Msg("! fs_extract: can't read '%s'", file.name.c_str());
+                continue;
+            }
+
+            string_path relative, destination;
+            strconcat(relative, "extracted" DELIMITER "gamedata" DELIMITER, file.name.c_str());
+            FS.update_path(destination, "$app_data_root$", relative);
+
+            IWriter* writer = FS.w_open(destination);
+            if (writer)
+            {
+                writer->w(reader->pointer(), reader->length());
+                FS.w_close(writer);
+                ++count;
+            }
+            FS.r_close(reader);
+        }
+
+        string_path folder;
+        FS.update_path(folder, "$app_data_root$", "extracted" DELIMITER "gamedata" DELIMITER);
+        Msg("* fs_extract: %u file(s) written to %s", count, folder);
+    }
+
+    void Info(TInfo& I) override { xr_strcpy(I, "<mask> copy files from the game archives, e.g. configs/ui/pda*.xml"); }
+};
+
 class CCC_Disconnect : public IConsole_Command
 {
 public:
@@ -757,6 +815,7 @@ void CCC_Register()
     CMD1(CCC_Quit, "quit");
     CMD1(CCC_Start, "start");
     CMD1(CCC_Disconnect, "disconnect");
+    CMD1(CCC_FS_Extract, "fs_extract");
     CMD1(CCC_SaveCFG, "cfg_save");
     CMD1(CCC_LoadCFG, "cfg_load");
 

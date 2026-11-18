@@ -34,6 +34,8 @@ target_sources(xrGame PRIVATE
     ActorCameras.cpp
     actor_communication.cpp
     ActorCondition.cpp
+    ActorRPG.cpp
+    ActorRPG.h
     ActorCondition.h
     ActorCondition_script.cpp
     Actor.cpp

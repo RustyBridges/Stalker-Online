@@ -2,6 +2,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "StdAfx.h"
+#include "ActorRPG.h"
 
 #include "Actor.h"
 #include "ActorEffector.h"
@@ -217,7 +218,16 @@ void CActor::HitSector(IGameObject* who, IGameObject* weapon)
 void CActor::on_weapon_shot_start(CWeapon* weapon)
 {
     // CWeaponMagazined* pWM = smart_cast<CWeaponMagazined*> (weapon);
-    CameraRecoil const& camera_recoil = (IsZoomAimingMode()) ? weapon->zoom_cam_recoil : weapon->cam_recoil;
+    CameraRecoil const& weapon_recoil = (IsZoomAimingMode()) ? weapon->zoom_cam_recoil : weapon->cam_recoil;
+
+    // RPG: Marksmanship reduces the kick (recovery speed unchanged)
+    CameraRecoil camera_recoil(weapon_recoil);
+    const float recoil_k = RPG().WeaponRecoilK();
+    camera_recoil.Dispersion *= recoil_k;
+    camera_recoil.DispersionInc *= recoil_k;
+    camera_recoil.MaxAngleVert *= recoil_k;
+    camera_recoil.MaxAngleHorz *= recoil_k;
+    camera_recoil.StepAngleHorz *= recoil_k;
 
     CCameraShotEffector* effector = smart_cast<CCameraShotEffector*>(Cameras().GetCamEffector(eCEShot));
     if (!effector)

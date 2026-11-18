@@ -1,4 +1,5 @@
 #include "StdAfx.h"
+#include "ActorRPG.h"
 
 #include "Actor.h"
 #include "Inventory.h"
@@ -652,6 +653,7 @@ float CActor::MaxCarryWeight() const
 {
     float res = inventory().GetMaxWeight();
     res += get_additional_weight();
+    res += RPG().CarryWeightBonus(); // RPG: Endurance
     return res;
 }
 
@@ -659,6 +661,7 @@ float CActor::MaxWalkWeight() const
 {
     float max_w = CActor::conditions().MaxWalkWeight();
     max_w += get_additional_weight();
+    max_w += RPG().CarryWeightBonus(); // RPG: Endurance
     return max_w;
 }
 #include "Artefact.h"

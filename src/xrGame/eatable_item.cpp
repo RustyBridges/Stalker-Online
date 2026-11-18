@@ -7,6 +7,9 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "StdAfx.h"
+#include "ActorRPG.h"
+#include "Actor.h"
+#include "ActorCondition.h"
 #include "eatable_item.h"
 #include "xrMessages.h"
 #include "physic_item.h"
@@ -123,6 +126,30 @@ bool CEatableItem::UseBy(CEntityAlive* entity_alive)
     R_ASSERT(IO);
     R_ASSERT(m_pInventory == IO->m_inventory);
     R_ASSERT(object().H_Parent()->ID() == entity_alive->ID());
+
+    // RPG: First aid makes medical items heal more, and grows when they heal real damage
+    if (CActor* actor = smart_cast<CActor*>(entity_alive))
+    {
+        const CEntityCondition& cond = actor->conditions();
+        const float missing_health = cond.GetMaxHealth() - cond.GetHealth();
+        const float bleeding = cond.BleedingSpeed();
+        const float heal_k = actor->RPG().HealK();
+
+        float uses = 0.f;
+        if (V.fHealth > 0.f)
+        {
+            if (missing_health > 0.05f)
+                uses += std::min(1.f, missing_health / 0.25f);
+            V.fHealth *= heal_k;
+        }
+        if (V.fWoundsHeal > 0.f)
+        {
+            if (bleeding > 0.01f)
+                uses += 0.5f;
+            V.fWoundsHeal *= heal_k;
+        }
+        actor->RPG().Train(rpg::eFirstAid, uses);
+    }
 
     entity_alive->conditions().ApplyInfluence(V, m_physic_item->cNameSect());
 

@@ -1,4 +1,7 @@
 #include "pch_script.h"
+#include "ActorRPG.h"
+#include "WeaponKnife.h"
+#include "Actor.h"
 #include "entity_alive.h"
 #include "InventoryOwner.h"
 #include "Inventory.h"
@@ -261,8 +264,53 @@ void CEntityAlive::HitImpulse(float /**amount**/, Fvector& /**vWorldDir**/, Fvec
     //	m_PhysicMovementControl->vExternalImpulse.mad	(vWorldDir,Q);
 }
 
+// RPG: player skills applied to hits (see ActorRPG.h)
+static void RPG_OnHit(CEntityAlive* victim, SHit& hit)
+{
+    CActor* actor = Actor();
+    if (!actor || !IsGameTypeSingle() || !victim->g_Alive() || hit.power <= 0.f)
+        return;
+
+    CActorRPG& rpg = actor->RPG();
+    if (victim == actor)
+    {
+        // Resilience: radiation, anomalies, psi
+        switch (hit.hit_type)
+        {
+        case ALife::eHitTypeBurn:
+        case ALife::eHitTypeLightBurn:
+        case ALife::eHitTypeShock:
+        case ALife::eHitTypeChemicalBurn:
+        case ALife::eHitTypeRadiation:
+        case ALife::eHitTypeTelepatic:
+            rpg.TrainTimed(rpg::eResilience, std::min(hit.power * 3.f, 1.f), 1000);
+            hit.power *= rpg.HazardDamageK();
+            break;
+        default: break;
+        }
+        return;
+    }
+
+    if (hit.who != actor)
+        return;
+
+    if (hit.hit_type == ALife::eHitTypeFireWound)
+        rpg.TrainTimed(rpg::eMarksmanship, 0.5f, 150);
+    else if (hit.hit_type == ALife::eHitTypeWound || hit.hit_type == ALife::eHitTypeWound_2)
+    {
+        IGameObject* weapon = Level().Objects.net_Find(hit.weaponID);
+        if (weapon && smart_cast<CWeaponKnife*>(weapon))
+        {
+            hit.power *= rpg.MeleeDamageK();
+            rpg.TrainTimed(rpg::eMelee, 1.f, 300);
+        }
+    }
+}
+
 void CEntityAlive::Hit(SHit* pHDS)
 {
+    RPG_OnHit(this, *pHDS);
+
     SHit HDS = *pHDS;
     //-------------------------------------------------------------------
     if (HDS.hit_type == ALife::eHitTypeWound_2)

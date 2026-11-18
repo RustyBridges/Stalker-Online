@@ -7,6 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "pch_script.h"
+#include "ActorRPG.h"
 #include "visual_memory_manager.h"
 #include "ai/stalker/ai_stalker.h"
 #include "ai/stalker/ai_stalker_impl.h"
@@ -326,15 +327,23 @@ float CVisualMemoryManager::get_visible_value(const CGameObject* game_object,
     if (distance <= always_visible_distance + EPS_L)
         return (current_state().m_visibility_threshold);
 
+    float value;
+
     //Alundaio: hijack not_yet_visible_object to lua
     luabind::functor<float> funct;
     if (GEnv.ScriptEngine->functor("visual_memory_manager.get_visible_value", funct))
-        return (funct(m_object ? m_object->lua_game_object() : nullptr, game_object ? game_object->lua_game_object() : nullptr, time_delta, current_state().m_time_quant, luminocity, current_state().m_velocity_factor, object_velocity, distance, object_distance, always_visible_distance));
+        value = funct(m_object ? m_object->lua_game_object() : nullptr, game_object ? game_object->lua_game_object() : nullptr, time_delta, current_state().m_time_quant, luminocity, current_state().m_velocity_factor, object_velocity, distance, object_distance, always_visible_distance);
     //-Alundaio
+    else
+        value = time_delta / current_state().m_time_quant * luminocity *
+            (1.f + current_state().m_velocity_factor * object_velocity) * (distance - object_distance) /
+            (distance - always_visible_distance);
 
-    return (time_delta / current_state().m_time_quant * luminocity *
-        (1.f + current_state().m_velocity_factor * object_velocity) * (distance - object_distance) /
-        (distance - always_visible_distance));
+    // RPG: Stealth makes others notice the player more slowly
+    if (game_object && game_object == Actor())
+        value *= Actor()->RPG().DetectionK();
+
+    return value;
 }
 
 CNotYetVisibleObject* CVisualMemoryManager::not_yet_visible_object(const CGameObject* game_object)
@@ -417,7 +426,17 @@ bool CVisualMemoryManager::visible(const CGameObject* game_object, float time_de
     clamp(object->m_value, 0.f, current_state().m_visibility_threshold + EPS_L);
     object->m_prev_time = get_prev_time(game_object);
 
-    return (object->m_value >= current_state().m_visibility_threshold);
+    const bool is_visible = object->m_value >= current_state().m_visibility_threshold;
+
+    // RPG: Stealth grows while crouching in a hostile's view without being noticed yet
+    if (!is_visible && IsGameTypeSingle() && m_object && m_object->g_Alive())
+    {
+        CActor* actor = Actor();
+        if (actor && game_object == actor && (actor->MovingState() & mcCrouch) && m_object->is_relation_enemy(actor))
+            actor->RPG().TrainTimed(rpg::eStealth, 0.1f, 1000);
+    }
+
+    return is_visible;
 }
 
 bool CVisualMemoryManager::should_ignore_object(IGameObject const* object) const

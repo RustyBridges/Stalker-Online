@@ -1,5 +1,6 @@
 #include "pch_script.h"
 #include "Actor.h"
+#include "ActorRPG.h"
 #include "HUDManager.h"
 #include "Actor_Flags.h"
 #include "Inventory.h"
@@ -729,6 +730,9 @@ bool CActor::net_Spawn(CSE_Abstract* DC)
     {
         setLocal(FALSE);
     };
+    if (IsGameTypeSingle())
+        m_rpg->OnSpawn();
+
     return true;
 }
 
@@ -1406,6 +1410,8 @@ void CActor::save(NET_Packet& output_packet)
     output_packet.w_stringZ(g_quick_use_slots[1]);
     output_packet.w_stringZ(g_quick_use_slots[2]);
     output_packet.w_stringZ(g_quick_use_slots[3]);
+
+    m_rpg->save(output_packet);
 }
 
 void CActor::load(IReader& input_packet)
@@ -1433,6 +1439,10 @@ void CActor::load(IReader& input_packet)
     input_packet.r_stringZ(g_quick_use_slots[1], sizeof(g_quick_use_slots[1]));
     input_packet.r_stringZ(g_quick_use_slots[2], sizeof(g_quick_use_slots[2]));
     input_packet.r_stringZ(g_quick_use_slots[3], sizeof(g_quick_use_slots[3]));
+
+    // Saves made before the RPG system have no RPG data: keep the fresh sheet.
+    if (!input_packet.eof())
+        m_rpg->load(input_packet);
 }
 
 #ifdef DEBUG

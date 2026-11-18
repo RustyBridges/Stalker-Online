@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "StdAfx.h"
+#include "ActorRPG.h"
 
 #include "Weapon.h"
 #include "InventoryOwner.h"
@@ -45,6 +46,10 @@ float CWeapon::GetFireDispersion(float cartridge_k, bool for_crosshair)
         const CInventoryOwner* pOwner = smart_cast<const CInventoryOwner*>(H_Parent());
         float parent_disp = pOwner->GetWeaponAccuracy();
         fire_disp += parent_disp;
+
+        // RPG: Marksmanship tightens the player's spread
+        if (const CActor* actor = smart_cast<const CActor*>(H_Parent()))
+            fire_disp *= actor->RPG().WeaponDispersionK();
     }
 
     return fire_disp;

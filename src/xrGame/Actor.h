@@ -22,6 +22,7 @@ using namespace ACTOR_DEFS;
 
 class CInfoPortion;
 struct GAME_NEWS_DATA;
+class CActorRPG;
 class CActorCondition;
 class CCustomOutfit;
 class CKnownContactsRegistryWrapper;
@@ -80,6 +81,14 @@ private:
 public:
     CActor();
     virtual ~CActor();
+
+    // RPG progression (skills, background), see ActorRPG.h
+    CActorRPG& RPG() const { return *m_rpg; }
+
+private:
+    CActorRPG* m_rpg;
+
+public:
 
 public:
     virtual bool AlwaysTheCrow() { return true; }

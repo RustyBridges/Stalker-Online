@@ -1,4 +1,5 @@
 #include "pch_script.h"
+#include "ActorRPG.h"
 #include "ActorCondition.h"
 #include "Actor.h"
 #include "ActorEffector.h"
@@ -199,8 +200,16 @@ void CActorCondition::UpdateCondition()
 
     if ((object().mstate_real & mcAnyMove))
     {
+        const bool sprint = (object().mstate_real & mcSprint) != 0;
         ConditionWalk(cur_weight / base_weight, isActorAccelerated(object().mstate_real, object().IsZoomAimingMode()),
-            (object().mstate_real & mcSprint) != 0);
+            sprint);
+
+        // RPG: Endurance grows with sprinting and with moving under a heavy load (real time)
+        const float real_dt = m_fDeltaTime / (IsGameTypeSingle() ? Level().GetGameTimeFactor() : 1.f);
+        if (sprint)
+            object().RPG().Train(rpg::eEndurance, real_dt / 10.f);
+        else if (cur_weight > 0.75f * base_weight)
+            object().RPG().Train(rpg::eEndurance, real_dt / 20.f);
     }
     else
     {
@@ -456,6 +465,7 @@ void CActorCondition::ConditionJump(float weight)
 {
     float power = m_fJumpPower;
     power += m_fJumpWeightPower * weight * (weight > 1.f ? m_fOverweightJumpK : 1.f);
+    power *= object().RPG().StaminaDrainK(); // RPG: Endurance
     m_fPower -= HitPowerEffect(power);
 }
 
@@ -464,6 +474,7 @@ void CActorCondition::ConditionWalk(float weight, bool accel, bool sprint)
     float power = m_fWalkPower;
     power += m_fWalkWeightPower * weight * (weight > 1.f ? m_fOverweightWalkK : 1.f);
     power *= m_fDeltaTime * (accel ? (sprint ? m_fSprintK : m_fAccelK) : 1.f);
+    power *= object().RPG().StaminaDrainK(); // RPG: Endurance
     m_fPower -= HitPowerEffect(power);
 }
 

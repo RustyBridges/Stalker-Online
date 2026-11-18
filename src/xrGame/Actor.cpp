@@ -32,6 +32,7 @@
 #include "xrEngine/xr_input.h"
 //
 #include "Actor.h"
+#include "ActorRPG.h"
 #include "ActorAnimation.h"
 #include "actor_anim_defs.h"
 #include "HudItem.h"
@@ -115,6 +116,7 @@ int psActorSleepTime = 1;
 
 CActor::CActor() : CEntityAlive(), current_ik_cam_shift(0)
 {
+    m_rpg = xr_new<CActorRPG>(this);
     encyclopedia_registry = xr_new<CEncyclopediaRegistryWrapper>();
     game_news_registry = xr_new<CGameNewsRegistryWrapper>();
 
@@ -228,6 +230,7 @@ CActor::CActor() : CEntityAlive(), current_ik_cam_shift(0)
 
 CActor::~CActor()
 {
+    xr_delete(m_rpg);
     xr_delete(m_location_manager);
     xr_delete(m_memory);
 
@@ -1783,6 +1786,13 @@ void CActor::OnItemTake(CInventoryItem* inventory_item)
     CInventoryOwner::OnItemTake(inventory_item);
     if (OnClient())
         return;
+
+    // RPG: first pickup of each artefact trains Artefact lore
+    if (IsGameTypeSingle())
+    {
+        if (CArtefact* artefact = smart_cast<CArtefact*>(inventory_item))
+            RPG().OnArtefactFound(artefact->ID());
+    }
 }
 
 void CActor::OnItemDrop(CInventoryItem* inventory_item, bool just_before_destroy)

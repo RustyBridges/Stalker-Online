@@ -2146,8 +2146,12 @@ public:
     }
 };
 
+void RegisterRPGConsoleCommands();
+
 void CCC_RegisterCommands()
 {
+    RegisterRPGConsoleCommands();
+
     ZoneScoped;
 
     // options

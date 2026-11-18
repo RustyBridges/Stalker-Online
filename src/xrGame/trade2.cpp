@@ -1,4 +1,5 @@
 #include "pch_script.h"
+#include "ActorRPG.h"
 #include "trade.h"
 #include "Actor.h"
 #include "ai/stalker/ai_stalker.h"
@@ -68,6 +69,18 @@ void CTrade::TransferItem(CInventoryItem* pItem, bool bBuying, bool bFree /*= fa
     // сумма сделки учитывая ценовой коэффициент
     // актер цену не говорит никогда, все делают за него
     u32 dwTransferMoney = GetItemPrice(pItem, bBuying, bFree);
+
+    // RPG: completed deals train Barter; selling artefacts trains Artefact lore
+    if (!bFree && dwTransferMoney > 0 && IsGameTypeSingle() && (pThis.type == TT_ACTOR || pPartner.type == TT_ACTOR))
+    {
+        if (CActor* actor = Actor())
+        {
+            actor->RPG().Train(rpg::eBarter, std::min(float(dwTransferMoney) / 2000.f, 2.f));
+            const bool actor_sells = (pThis.type == TT_ACTOR) ? !bBuying : bBuying;
+            if (actor_sells && smart_cast<CArtefact*>(pItem))
+                actor->RPG().Train(rpg::eArtefactLore, 1.f);
+        }
+    }
 
     if (bBuying)
     {
@@ -238,6 +251,19 @@ u32 CTrade::GetItemPrice(PIItem pItem, bool b_buying, bool bFree /*= false*/)
         result = iFloor(result * func(smart_cast<const CGameObject*>(pThis.inv_owner)->ID()));
     // if(result>500)
     //	result		= iFloor(result/10+0.5f)*10;
+
+    // RPG: Barter (and Artefact lore when selling artefacts)
+    if (is_actor && IsGameTypeSingle())
+    {
+        if (const CActor* actor = Actor())
+        {
+            const bool actor_buys = (pThis.type == TT_ACTOR) ? b_buying : !b_buying;
+            float k = actor_buys ? actor->RPG().BuyPriceK() : actor->RPG().SellPriceK();
+            if (!actor_buys && pArtefact)
+                k *= actor->RPG().ArtefactSellK();
+            result = iFloor(float(result) * k);
+        }
+    }
 
     clamp<u32>(result, 1, 1000000);
     return (result);
