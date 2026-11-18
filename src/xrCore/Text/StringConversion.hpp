@@ -30,5 +30,10 @@ IC bool IsAlphaCharacter(xr_wide_char wc)
         ((wc >= 0xFF21) && (wc <= 0xFF3A)) || ((wc >= 0xFF41) && (wc <= 0xFF5A)));
 }
 
+// Returns the user's preferred locale (std::locale("")).
+// If it can't be constructed (e.g. LANG names a locale missing from the
+// available locale archive), falls back to the classic "C" locale instead of throwing.
+XRCORE_API const std::locale& GetUserLocale();
+
 XRCORE_API xr_string StringFromUTF8(const char* string, const std::locale& locale);
 XRCORE_API xr_string StringToUTF8(const char* string, const std::locale& locale);

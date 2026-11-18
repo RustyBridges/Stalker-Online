@@ -5,6 +5,23 @@
 #include <codecvt>
 #include <locale>
 
+const std::locale& GetUserLocale()
+{
+    static const std::locale locale = []
+    {
+        try
+        {
+            return std::locale("");
+        }
+        catch (const std::runtime_error& e)
+        {
+            Msg("! Failed to load user locale, falling back to \"C\": %s", e.what());
+            return std::locale::classic();
+        }
+    }();
+    return locale;
+}
+
 #define BITS1_MASK 0x80 // 10000000b
 #define BITS2_MASK 0xC0 // 11000000b
 #define BITS3_MASK 0xE0 // 11100000b

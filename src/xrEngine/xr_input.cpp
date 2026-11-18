@@ -519,7 +519,7 @@ void CInput::ControllerUpdate()
 
 bool KbdKeyToButtonName(const int dik, xr_string& result)
 {
-    static std::locale locale("");
+    const std::locale& locale = GetUserLocale();
 
     if (dik >= 0)
     {

@@ -26,7 +26,7 @@ void os_clipboard::copy_to_clipboard(pcstr buf, bool alreadyUTF8 /*= false*/)
     }
     else
     {
-        static std::locale locale("");
+        const std::locale& locale = GetUserLocale();
         xr_string string = StringToUTF8(buf, locale);
         result = SDL_SetClipboardText(string.c_str());
     }
@@ -53,7 +53,7 @@ void os_clipboard::paste_from_clipboard(pstr buffer, size_t buffer_size)
         return;
     }
 
-    static std::locale locale("");
+    const std::locale& locale = GetUserLocale();
     const xr_string string = StringFromUTF8(clipData, locale);
     SDL_free(clipData);
 
@@ -93,7 +93,7 @@ void os_clipboard::update_clipboard(pcstr string)
         return;
     }
 
-    static std::locale locale("");
+    const std::locale& locale = GetUserLocale();
     const xr_string stringInUTF8 = StringToUTF8(string, locale);
 
     const size_t clipLength = xr_strlen(clipData);

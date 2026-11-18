@@ -526,7 +526,7 @@ void CApplication::InitializeDiscord()
 
     if (core)
     {
-        const std::locale locale("");
+        const std::locale& locale = GetUserLocale();
 
         discord::Activity activity{};
         activity.SetType(discord::ActivityType::Playing);

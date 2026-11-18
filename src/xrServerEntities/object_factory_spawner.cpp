@@ -257,7 +257,7 @@ void CObjectFactory::on_tool_frame()
             {
             case DisplayGameNames:
             {
-                const std::locale locale("");
+                const std::locale& locale = GetUserLocale();
                 if (cpcstr inv_name = pSettings->read_if_exists<pcstr>(section->Name.c_str(), "inv_name", nullptr))
                 {
                     const auto translated = StringTable().translate(inv_name);

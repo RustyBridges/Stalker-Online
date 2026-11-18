@@ -371,7 +371,7 @@ void line_edit_control::on_text_input(const char *text)
     clear_inserted();
     compute_positions();
 
-    static std::locale locale("");
+    const std::locale& locale = GetUserLocale();
     const auto str = StringFromUTF8(text, locale);
 
     for (char c : str)
