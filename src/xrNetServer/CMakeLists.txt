@@ -21,21 +21,25 @@ target_sources(xrNetServer PRIVATE
     NET_Shared.h
     stdafx.cpp
     stdafx.h
-    empty/NET_Client.cpp
-    empty/NET_Client.h
-    empty/NET_Server.cpp
-    empty/NET_Server.h
+    enet/NET_Client.cpp
+    enet/NET_Client.h
+    enet/NET_ENet.cpp
+    enet/NET_ENet.h
+    enet/NET_Server.cpp
+    enet/NET_Server.h
 )
 
 target_include_directories(xrNetServer
     PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/enet"
     "${XRAY_SOURCE_DIR}/src"
 )
 
 target_link_libraries(xrNetServer
     PRIVATE
     xrCore
+    xrENet
 )
 
 target_compile_definitions(xrNetServer
