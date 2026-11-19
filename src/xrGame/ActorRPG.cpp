@@ -2,6 +2,9 @@
 
 #include "ActorRPG.h"
 #include "Actor.h"
+#include "entity_alive.h"
+#include "InventoryOwner.h"
+#include "Level.h"
 #include "game_news.h"
 #include "UIGameCustom.h"
 #include "ui/UIRPGBackgroundDlg.h"
@@ -13,6 +16,7 @@ using namespace rpg;
 namespace rpg
 {
 float g_gain_mult = 1.f;
+int g_debug = 0;
 
 namespace
 {
@@ -164,6 +168,12 @@ void CActorRPG::OnArtefactFound(u16 object_id)
 {
     if (m_found_artefacts.insert(object_id).second)
         Train(eArtefactLore, 2.f);
+}
+
+void CActorRPG::DebugSetLevel(u32 level)
+{
+    m_points_gained = (std::max(level, 1u) - 1) * POINTS_PER_LEVEL;
+    Msg("* RPG: level set to %u", Level());
 }
 
 void CActorRPG::AddPoints(ESkill skill, int points, bool counts_for_level)
@@ -422,10 +432,114 @@ public:
     }
     void Info(TInfo& I) override { xr_strcpy(I, "soldier | smuggler | scientist | drifter | none (resets skills)"); }
 };
+// Characters on the current level whose name contains `filter` (all if empty).
+xr_vector<CGameObject*> FindCharacters(pcstr filter)
+{
+    xr_vector<CGameObject*> result;
+    const CActor* actor = Actor();
+    for (u32 i = 0; i < Level().Objects.o_count(); ++i)
+    {
+        auto* obj = smart_cast<CGameObject*>(Level().Objects.o_get_by_iterator(i));
+        auto* alive = smart_cast<CEntityAlive*>(obj);
+        if (!obj || obj == actor || !alive || !alive->g_Alive() || !smart_cast<CInventoryOwner*>(obj))
+            continue;
+        if (filter && filter[0] && !strstr(obj->cName().c_str(), filter))
+            continue;
+        result.push_back(obj);
+    }
+    return result;
+}
+
+class CCC_RPG_SetLevel : public IConsole_Command
+{
+public:
+    CCC_RPG_SetLevel(pcstr name) : IConsole_Command(name) {}
+    void Execute(pcstr args) override
+    {
+        CActorRPG* rpg = ConsoleRPG();
+        int level = 0;
+        if (!rpg || sscanf(args, "%d", &level) != 1 || level < 1)
+        {
+            InvalidSyntax();
+            return;
+        }
+        rpg->DebugSetLevel(u32(level));
+    }
+    void Info(TInfo& I) override { xr_strcpy(I, "<level> set the character level (testing)"); }
+};
+
+class CCC_RPG_Find : public IConsole_Command
+{
+public:
+    CCC_RPG_Find(pcstr name) : IConsole_Command(name) { bEmptyArgsHandled = true; }
+    void Execute(pcstr args) override
+    {
+        const CActor* actor = Actor();
+        if (!actor)
+            return;
+        string256 filter;
+        xr_strcpy(filter, args);
+        xr_strlwr(filter);
+        const auto found = FindCharacters(filter);
+        Msg("- %u character(s) on this level matching '%s':", u32(found.size()), filter);
+        for (u32 i = 0; i < found.size() && i < 60; ++i)
+        {
+            Msg("  %-40s %6.0f m", found[i]->cName().c_str(), found[i]->Position().distance_to(actor->Position()));
+        }
+    }
+    void Info(TInfo& I) override { xr_strcpy(I, "<text> list living characters on this level whose name contains text"); }
+};
+
+class CCC_RPG_Goto : public IConsole_Command
+{
+public:
+    CCC_RPG_Goto(pcstr name) : IConsole_Command(name) {}
+    void Execute(pcstr args) override
+    {
+        CActor* actor = Actor();
+        if (!actor)
+            return;
+        string256 filter;
+        xr_strcpy(filter, args);
+        xr_strlwr(filter);
+        const auto found = FindCharacters(filter);
+        if (found.empty())
+        {
+            Msg("! rpg_goto: nobody on this level matches '%s' (try rpg_find)", filter);
+            return;
+        }
+        // Prefer an exact name match, otherwise the first partial match.
+        CGameObject* target = found.front();
+        for (CGameObject* obj : found)
+        {
+            if (0 == xr_strcmp(obj->cName().c_str(), filter))
+            {
+                target = obj;
+                break;
+            }
+        }
+        // Stand a metre in front of them (traders usually face their customers).
+        Fvector dir = target->XFORM().k;
+        dir.y = 0.f;
+        if (dir.square_magnitude() < EPS)
+            dir.set(0.f, 0.f, 1.f);
+        dir.normalize();
+        Fmatrix xform = actor->XFORM();
+        xform.c.mad(target->Position(), dir, 1.2f);
+        xform.c.y += 0.1f;
+        actor->ForceTransform(xform);
+        Msg("* rpg_goto: moved next to %s", target->cName().c_str());
+    }
+    void Info(TInfo& I) override { xr_strcpy(I, "<name> teleport next to a character on this level (testing)"); }
+};
 } // namespace
 
 void RegisterRPGConsoleCommands()
 {
+    CMD1(CCC_RPG_SetLevel, "rpg_set_level");
+    CMD1(CCC_RPG_Find, "rpg_find");
+    CMD1(CCC_RPG_Goto, "rpg_goto");
+    CMD4(CCC_Integer, "rpg_debug", &rpg::g_debug, 0, 1);
     CMD1(CCC_RPG_Sheet, "rpg_sheet");
     CMD1(CCC_RPG_Add, "rpg_add");
     CMD1(CCC_RPG_Background, "rpg_background");

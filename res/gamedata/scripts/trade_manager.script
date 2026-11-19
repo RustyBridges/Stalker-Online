@@ -43,6 +43,11 @@ local function apply_rpg_supplies(config, section)
 	end
 	return best
 end
+
+-- rpg_debug 1 in the console: traders re-check stock on every update (testing)
+local function rpg_trade_debug()
+	return rpg ~= nil and rpg.debug()
+end
 -- end of stalker-online RPG systems
 
 
@@ -91,7 +96,9 @@ function update(npc)
 		return
 	end
 
-	if tt.update_time ~= nil and tt.update_time < time_global() then
+	-- stalker-online: the original check was inverted (it skipped updates once
+	-- the hour had passed, so traders stopped updating after the first hour).
+	if not rpg_trade_debug() and tt.update_time ~= nil and time_global() < tt.update_time then
 		return
 	end
 	tt.update_time = time_global() + 3600000
@@ -134,9 +141,9 @@ function update(npc)
 	end
 	str = apply_rpg_supplies(tt.config, str) -- stalker-online RPG systems
 	if tt.current_buy_supplies ~= str then
-		if tt.resuply_time ~= nil and tt.resuply_time < time_global() then
-			return
-		end
+		-- stalker-online: restock as soon as the supplies section changes (story
+		-- progress or a new character level). The original guard here was inverted
+		-- and blocked restocks once its timer expired.
 		--'printf("TRADE [%s]: buy_supplies = %s", npc:name(), str)
 		npc:buy_supplies(tt.config, str)
 		tt.current_buy_supplies = str

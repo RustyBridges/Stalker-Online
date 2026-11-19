@@ -700,6 +700,8 @@ static pcstr rpg_background()
     return rpg::BackgroundId(actor ? actor->RPG().Background() : rpg::eBgNone);
 }
 
+static bool rpg_debug() { return rpg::g_debug != 0; }
+
 static void rpg_train(pcstr id, float uses)
 {
     rpg::ESkill skill;
@@ -910,7 +912,8 @@ void CLevel::script_register(lua_State* luaState)
         def("level", &rpg_level),
         def("skill", &rpg_skill),
         def("background", &rpg_background),
-        def("train", &rpg_train)
+        def("train", &rpg_train),
+        def("debug", &rpg_debug)
     ];
 
     module(luaState, "actor_stats")

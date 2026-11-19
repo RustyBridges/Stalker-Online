@@ -48,6 +48,8 @@ bool ParseBackground(pcstr text, EBackground& bg);
 
 // Global multiplier for skill gains (console: rpg_gain_mult), for testing.
 extern float g_gain_mult;
+// Testing mode (console: rpg_debug 1), readable from scripts as rpg.debug().
+extern int g_debug;
 } // namespace rpg
 
 class CActorRPG
@@ -77,6 +79,7 @@ public:
     // First pickup of an artefact (by object id) trains Artefact lore once.
     void OnArtefactFound(u16 object_id);
     void AddPoints(rpg::ESkill skill, int points, bool counts_for_level); // console / scripts
+    void DebugSetLevel(u32 level); // console: rpg_set_level
 
     // --- effects (multipliers; 1 = no change) -------------------------------------
     float WeaponDispersionK() const; // Marksmanship: up to -35%
