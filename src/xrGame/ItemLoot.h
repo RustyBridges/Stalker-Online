@@ -31,9 +31,6 @@ enum ERarity : u8
 // Called from CInventoryItemObject::net_Spawn, after upgrades are installed.
 void OnItemSpawn(CInventoryItem& item, CSE_Abstract* entity);
 
-// Force the rarity of the next roll of the item with this object id (rpg_spawn).
-void ForceNextRarity(u16 object_id, ERarity rarity);
-
 pcstr RarityName(u8 rarity);
 u32 RarityColor(u8 rarity);
 } // namespace loot

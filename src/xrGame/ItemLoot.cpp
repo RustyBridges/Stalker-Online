@@ -6,6 +6,7 @@
 #include "Actor.h"
 #include "ActorRPG.h"
 #include "Level.h"
+#include "xrServer.h"
 #include "ai_space.h"
 #include "alife_simulator.h"
 #include "alife_object_registry.h"
@@ -88,7 +89,9 @@ struct Config
 };
 
 Config g_config;
-xr_map<u16, ERarity> g_forced_rarity;
+
+// m_rpg_rarity values FORCED_BASE + rarity: "not rolled yet, roll with this rarity" (rpg_spawn).
+constexpr u8 FORCED_BASE = 0xF0;
 
 void ReadFloats(CInifile& ini, pcstr sect, pcstr key, float (&out)[eRarityCount])
 {
@@ -354,7 +357,6 @@ u32 RarityColor(u8 rarity)
     return rarity < eRarityCount ? c.rarity_colors[rarity] : color_argb(255, 255, 255, 255);
 }
 
-void ForceNextRarity(u16 object_id, ERarity rarity) { g_forced_rarity[object_id] = rarity; }
 
 void OnItemSpawn(CInventoryItem& item, CSE_Abstract* entity)
 {
@@ -372,17 +374,11 @@ void OnItemSpawn(CInventoryItem& item, CSE_Abstract* entity)
     auto* se = smart_cast<CSE_ALifeInventoryItem*>(ai().alife().objects().object(entity->ID, true));
     CSE_ALifeInventoryItem* source = se ? se : se_copy;
 
-    if (source->m_rpg_rarity == CSE_ALifeInventoryItem::RPG_UNROLLED)
+    const u8 stored = source->m_rpg_rarity;
+    if (stored == CSE_ALifeInventoryItem::RPG_UNROLLED || (stored >= FORCED_BASE && stored < FORCED_BASE + eRarityCount))
     {
-        ERarity rarity;
-        const auto forced = g_forced_rarity.find(entity->ID);
-        if (forced != g_forced_rarity.end())
-        {
-            rarity = forced->second;
-            g_forced_rarity.erase(forced);
-        }
-        else
-            rarity = RollRarity(CurrentDanger());
+        const ERarity rarity =
+            stored == CSE_ALifeInventoryItem::RPG_UNROLLED ? RollRarity(CurrentDanger()) : ERarity(stored - FORCED_BASE);
 
         source->m_rpg_rarity = u8(rarity);
         RollAffixes(kind, rarity, source->m_rpg_affixes);
@@ -435,12 +431,30 @@ void SpawnForActor(pcstr section, int rarity /* -1 = roll normally */)
         Msg("! loot: no item section [%s]", section);
         return;
     }
-    // Same as the scripts' alife(): spawning needs a non-const simulator.
+
+    // Same as the scripts' alife():create() for an online parent: build the
+    // entity unregistered, then spawn it through the server so the client
+    // object appears in the actor's inventory.
     auto* alife = const_cast<CALifeSimulator*>(ai().get_alife());
-    CSE_Abstract* e = alife->spawn_item(section, actor->Position(), actor->ai_location().level_vertex_id(),
-        actor->ai_location().game_vertex_id(), actor->ID());
-    if (e && rarity >= 0)
-        loot::ForceNextRarity(e->ID, loot::ERarity(rarity));
+    CSE_Abstract* item = alife->spawn_item(section, actor->Position(), actor->ai_location().level_vertex_id(),
+        actor->ai_location().game_vertex_id(), actor->ID(), false);
+    if (!item)
+        return;
+    if (auto* inv = smart_cast<CSE_ALifeInventoryItem*>(item); inv && rarity >= 0)
+        inv->m_rpg_rarity = u8(loot::FORCED_BASE + rarity);
+
+    NET_Packet packet;
+    packet.w_begin(M_SPAWN);
+    packet.w_stringZ(section);
+    item->Spawn_Write(packet, FALSE);
+    alife->server().FreeID(item->ID, 0);
+    F_entity_Destroy(item);
+
+    ClientID client_id;
+    client_id.set(0xffff);
+    u16 message;
+    packet.r_begin(message);
+    alife->server().Process_spawn(packet, client_id);
     Msg("* loot: spawned %s into your inventory", section);
 }
 
