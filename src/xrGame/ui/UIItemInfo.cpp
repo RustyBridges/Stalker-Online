@@ -1,4 +1,5 @@
 #include "pch_script.h"
+#include "ItemLoot.h"
 #include "UIItemInfo.h"
 #include "xrUICore/Static/UIStatic.h"
 #include "UIXmlInit.h"
@@ -193,6 +194,10 @@ void CUIItemInfo::InitItem(CUICellItem* pCellItem, CInventoryItem* pCompareItem,
     if (UIName)
     {
         UIName->SetText(pInvItem->NameItem());
+        // stalker-online loot system: colour the name by rarity (common keeps the layout colour)
+        static const u32 layout_name_color = UIName->GetTextColor();
+        UIName->SetTextColor(pInvItem->m_loot_rarity > loot::eCommon ? loot::RarityColor(pInvItem->m_loot_rarity) :
+                                                                         layout_name_color);
         if (!soc_style)
             UIName->AdjustHeightToText();
         pos.y = UIName->GetWndPos().y + UIName->GetHeight() + 4.0f;

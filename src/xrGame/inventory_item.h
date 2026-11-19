@@ -11,6 +11,7 @@
 #include "inventory_space.h"
 #include "hit_immunity.h"
 #include "attachable_item.h"
+#include "ItemLootStats.h"
 #include "xrServer_Objects_ALife.h"
 #include "xrServer_Objects_ALife_Items.h"
 #include "xrCommon/xr_deque.h"
@@ -304,6 +305,19 @@ public:
     IC Upgrades_type const& upgardes() const;
     virtual void Interpolate();
     float interpolate_states(net_update_IItem const& first, net_update_IItem const& last, SPHNetState& current);
+
+public:
+    // stalker-online loot system (see ItemLoot.h): this item's rolled rarity
+    // and affixes, copied from its server entity when it spawns.
+    u8 m_loot_rarity{ 0 };
+    xr_vector<std::pair<shared_str, float>> m_loot_affixes;
+
+    // Apply one rolled stat change to this item's stats. The base class handles
+    // weight; weapons, outfits, helmets, artefacts and detectors override it.
+    virtual void loot_apply_stat(loot::EStat stat, float value);
+
+    // Rebuild name / description / price after affixes (called by ItemLoot).
+    void loot_set_presentation(const shared_str& name, const shared_str& description, float price_k);
 
 protected:
     virtual void net_Spawn_install_upgrades(CSE_Abstract* DC);

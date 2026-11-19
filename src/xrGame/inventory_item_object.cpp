@@ -7,6 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "pch_script.h"
+#include "ItemLoot.h"
 #include "inventory_item_object.h"
 
 CInventoryItemObject::CInventoryItemObject() {}
@@ -86,6 +87,7 @@ void CInventoryItemObject::OnEvent(NET_Packet& P, u16 type)
 bool CInventoryItemObject::net_Spawn(CSE_Abstract* DC)
 {
     CInventoryItem::net_Spawn_install_upgrades(DC);
+    loot::OnItemSpawn(*this, DC); // stalker-online loot system: roll / apply affixes
     BOOL res = CPhysicItem::net_Spawn(DC);
     CInventoryItem::net_Spawn(DC);
     return (res);

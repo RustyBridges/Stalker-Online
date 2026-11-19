@@ -60,6 +60,12 @@ public:
     u32 m_last_update_time;
     xr_vector<shared_str> m_upgrades;
 
+    // stalker-online loot system: rolled rarity and affixes (see xrGame/ItemLoot.h).
+    // RPG_UNROLLED until the item is first rolled.
+    static constexpr u8 RPG_UNROLLED = 0xFF;
+    u8 m_rpg_rarity{ RPG_UNROLLED };
+    xr_vector<std::pair<shared_str, float>> m_rpg_affixes;
+
 public:
     CSE_ALifeInventoryItem(LPCSTR caSection);
     virtual ~CSE_ALifeInventoryItem();

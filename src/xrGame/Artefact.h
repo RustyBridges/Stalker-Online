@@ -37,6 +37,7 @@ public:
 
     virtual CArtefact* cast_artefact() { return this; }
 
+    void loot_apply_stat(loot::EStat stat, float value) override; // stalker-online loot system
     float GetHealthPower() const { return m_fHealthRestoreSpeed; }
     float GetRadiationPower() const { return m_fRadiationRestoreSpeed; }
     float GetSatietyPower() const { return m_fSatietyRestoreSpeed; }

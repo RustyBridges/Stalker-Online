@@ -127,6 +127,8 @@
     <ClInclude Include="ActivatingCharCollisionDelay.h" />
     <ClInclude Include="Actor.h" />
     <ClInclude Include="ActorRPG.h" />
+    <ClInclude Include="ItemLoot.h" />
+    <ClInclude Include="ItemLootStats.h" />
     <ClInclude Include="ActorAnimation.h" />
     <ClInclude Include="ActorCondition.h" />
     <ClInclude Include="ActorEffector.h" />
@@ -1577,6 +1579,8 @@
     <ClCompile Include="ActorMountedWeapon.cpp" />
     <ClCompile Include="ActorVehicle.cpp" />
     <ClCompile Include="ActorRPG.cpp" />
+    <ClCompile Include="ItemLoot.cpp" />
+    <ClCompile Include="ItemLootApply.cpp" />
     <ClCompile Include="actor_communication.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>

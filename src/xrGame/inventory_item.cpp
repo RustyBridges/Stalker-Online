@@ -129,6 +129,20 @@ void CInventoryItem::Load(LPCSTR section)
     m_icon_name = READ_IF_EXISTS(pSettings, r_string, section, "icon_name", NULL);
 }
 
+void CInventoryItem::loot_apply_stat(loot::EStat stat, float value)
+{
+    if (stat == loot::stWeight)
+        m_weight = std::max(0.01f, m_weight * (1.f + value));
+}
+
+void CInventoryItem::loot_set_presentation(const shared_str& name, const shared_str& description, float price_k)
+{
+    m_name = name;
+    m_nameShort = name;
+    m_Description = description;
+    m_cost = u32(std::max(1.f, float(m_cost) * price_k));
+}
+
 void CInventoryItem::ReloadNames()
 {
     m_name = StringTable().translate(pSettings->r_string(m_object->cNameSect(), INV_NAME_KEY));

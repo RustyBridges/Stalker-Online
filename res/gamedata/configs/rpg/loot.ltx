@@ -1,0 +1,185 @@
+; stalker-online loot system (doc/design/loot-system.md, src/xrGame/ItemLoot.cpp)
+; Edit and restart the game to rebalance; no rebuild needed.
+;
+; Items roll once, the first time they come online. Rarity decides how many
+; affixes an item gets and how strong they roll.
+
+[loot_rarity]
+names              = Common, Uncommon, Rare, Epic, Legendary
+; r,g,b per rarity, separated by ';'
+colors             = 200,200,200; 120,210,120; 90,150,255; 190,110,255; 255,170,40
+; price multiplier (buying and selling)
+price_k            = 1, 1.5, 2.5, 4, 7
+affix_count        = 0, 1, 2, 3, 3
+; roll strength range per rarity: 0 = an affix's "min", 1 = its "max"
+strength_min       = 0, 0.0, 0.25, 0.5, 0.75
+strength_max       = 0, 0.4, 0.65, 0.9, 1.0
+; rarity weights in the safest (danger 0) and most dangerous (danger 1) areas;
+; areas in between blend the two
+weights_safe       = 70, 22, 6, 1.8, 0.2
+weights_dangerous  = 30, 30, 22, 13, 5
+; character level adds danger: level_bonus per level above 1, at most level_bonus_max
+level_bonus        = 0.015
+level_bonus_max    = 0.3
+
+[loot_zone_danger]
+; per level (map) name, 0..1
+zaton               = 0.15
+jupiter             = 0.45
+jupiter_underground = 0.6
+pripyat             = 0.75
+labx8               = 0.85
+default             = 0.3
+
+; Every affix section listed here is available.
+; name       = word put in front of the item name
+; kinds      = weapon, outfit, helmet, artefact, detector
+; stat       = weight dispersion recoil damage fire_rate mag_size wear armor burn shock
+;              chemical radiation psi carry artefact_positive artefact_negative detect_range
+; min, max   = change at roll strength 0 and 1 (relative: -0.2 = 20% less; carry is in kg)
+; min_rarity = 1 uncommon, 2 rare, 3 epic, 4 legendary
+[loot_affixes]
+affix_precise
+affix_steady
+affix_powerful
+affix_rapid
+affix_extended
+affix_reliable
+affix_lightweight
+affix_reinforced
+affix_fireproof
+affix_insulated
+affix_sealed
+affix_lead_lined
+affix_shielded
+affix_rigged
+affix_potent
+affix_stable
+affix_sensitive
+
+; --- weapons ---------------------------------------------------------------------
+[affix_precise]
+name       = Precise
+kinds      = weapon
+stat       = dispersion
+min        = -0.05
+max        = -0.30
+
+[affix_steady]
+name       = Steady
+kinds      = weapon
+stat       = recoil
+min        = -0.05
+max        = -0.30
+
+[affix_powerful]
+name       = Powerful
+kinds      = weapon
+stat       = damage
+min        = 0.03
+max        = 0.18
+min_rarity = 2
+
+[affix_rapid]
+name       = Rapid
+kinds      = weapon
+stat       = fire_rate
+min        = 0.04
+max        = 0.20
+
+[affix_extended]
+name       = Extended
+kinds      = weapon
+stat       = mag_size
+min        = 0.10
+max        = 0.35
+min_rarity = 2
+
+[affix_reliable]
+name       = Reliable
+kinds      = weapon
+stat       = wear
+min        = -0.10
+max        = -0.50
+
+; --- everything ------------------------------------------------------------------
+[affix_lightweight]
+name       = Lightweight
+kinds      = weapon, outfit, helmet, artefact, detector
+stat       = weight
+min        = -0.08
+max        = -0.35
+
+; --- suits and helmets -------------------------------------------------------------
+[affix_reinforced]
+name       = Reinforced
+kinds      = outfit, helmet
+stat       = armor
+min        = 0.05
+max        = 0.30
+
+[affix_fireproof]
+name       = Fireproof
+kinds      = outfit, helmet
+stat       = burn
+min        = 0.10
+max        = 0.50
+
+[affix_insulated]
+name       = Insulated
+kinds      = outfit, helmet
+stat       = shock
+min        = 0.10
+max        = 0.50
+
+[affix_sealed]
+name       = Sealed
+kinds      = outfit, helmet
+stat       = chemical
+min        = 0.10
+max        = 0.50
+
+[affix_lead_lined]
+name       = Lead-lined
+kinds      = outfit, helmet
+stat       = radiation
+min        = 0.10
+max        = 0.50
+
+[affix_shielded]
+name       = Shielded
+kinds      = outfit, helmet
+stat       = psi
+min        = 0.10
+max        = 0.50
+
+[affix_rigged]
+name       = Rigged
+kinds      = outfit
+stat       = carry
+min        = 2
+max        = 10
+min_rarity = 2
+
+; --- artefacts -----------------------------------------------------------------------
+[affix_potent]
+name       = Potent
+kinds      = artefact
+stat       = artefact_positive
+min        = 0.08
+max        = 0.40
+
+[affix_stable]
+name       = Stable
+kinds      = artefact
+stat       = artefact_negative
+min        = -0.10
+max        = -0.50
+
+; --- detectors -------------------------------------------------------------------------
+[affix_sensitive]
+name       = Sensitive
+kinds      = detector
+stat       = detect_range
+min        = 0.10
+max        = 0.50

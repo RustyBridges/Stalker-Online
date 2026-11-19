@@ -75,6 +75,7 @@ public:
 
 protected:
     virtual bool install_upgrade_impl(LPCSTR section, bool test);
+    void loot_apply_stat(loot::EStat stat, float value) override; // stalker-online loot system
 
 private:
     DECLARE_SCRIPT_REGISTER_FUNCTION(CGameObject);

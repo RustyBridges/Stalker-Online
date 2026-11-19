@@ -506,6 +506,7 @@ private:
 
 protected:
     virtual bool install_upgrade_impl(LPCSTR section, bool test);
+    void loot_apply_stat(loot::EStat stat, float value) override; // stalker-online loot system
 
 private:
     float m_hit_probability[egdCount];

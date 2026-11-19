@@ -80,6 +80,15 @@ void CSE_ALifeInventoryItem::STATE_Write(NET_Packet& tNetPacket)
 {
     tNetPacket.w_float(m_fCondition);
     save_data(m_upgrades, tNetPacket);
+
+    tNetPacket.w_u8(m_rpg_rarity);
+    tNetPacket.w_u8(u8(m_rpg_affixes.size()));
+    for (const auto& [affix, value] : m_rpg_affixes)
+    {
+        tNetPacket.w_stringZ(affix);
+        tNetPacket.w_float(value);
+    }
+
     State.position = base()->o_Position;
 }
 
@@ -93,6 +102,22 @@ void CSE_ALifeInventoryItem::STATE_Read(NET_Packet& tNetPacket, u16 size)
     {
         load_data(m_upgrades, tNetPacket);
     }
+
+    m_rpg_affixes.clear();
+    if (m_wVersion > 128)
+    {
+        tNetPacket.r_u8(m_rpg_rarity);
+        const u8 count = tNetPacket.r_u8();
+        for (u8 i = 0; i < count; ++i)
+        {
+            shared_str affix;
+            tNetPacket.r_stringZ(affix);
+            const float value = tNetPacket.r_float();
+            m_rpg_affixes.emplace_back(affix, value);
+        }
+    }
+    else
+        m_rpg_rarity = RPG_UNROLLED;
 
     State.position = base()->o_Position;
 }

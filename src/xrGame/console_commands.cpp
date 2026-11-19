@@ -2147,10 +2147,12 @@ public:
 };
 
 void RegisterRPGConsoleCommands();
+void RegisterLootConsoleCommands();
 
 void CCC_RegisterCommands()
 {
     RegisterRPGConsoleCommands();
+    RegisterLootConsoleCommands();
 
     ZoneScoped;
 

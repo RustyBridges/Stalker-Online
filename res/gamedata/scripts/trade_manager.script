@@ -3,47 +3,7 @@
 local trade_manager = {
 }
 
--- stalker-online RPG systems (doc/design/rpg-systems.md):
--- experienced stalkers get better stock. After the story picks a supplies
--- tier, the character level raises it (+1 tier at level 6, +2 at level 12),
--- never past the best tier this trader defines.
-local function supplies_tier(section)
-	if section == "supplies_start" then
-		return 1
-	end
-	return tonumber(string.match(section, "^supplies_tier_(%d+)$"))
-end
-
-local function rpg_supplies_bonus()
-	if rpg == nil then
-		return 0
-	end
-	local lvl = rpg.level()
-	if lvl >= 12 then
-		return 2
-	elseif lvl >= 6 then
-		return 1
-	end
-	return 0
-end
-
-local function apply_rpg_supplies(config, section)
-	local tier = supplies_tier(section)
-	local bonus = rpg_supplies_bonus()
-	if tier == nil or bonus == 0 then
-		return section
-	end
-	local best = section
-	for t = tier + 1, tier + bonus do
-		local candidate = "supplies_tier_" .. t
-		if not config:section_exist(candidate) then
-			break
-		end
-		best = candidate
-	end
-	return best
-end
-
+-- stalker-online RPG systems:
 -- rpg_debug 1 in the console: traders re-check stock on every update (testing)
 -- and the stock decisions are written to the log.
 local function rpg_trade_debug()
@@ -149,9 +109,7 @@ function update(npc)
 	if(str=="" or str==nil) then
 		abort("Wrong section in buy_condition condlist for npc [%s]!", npc:name())
 	end
-	local story_str = str
-	str = apply_rpg_supplies(tt.config, str) -- stalker-online RPG systems
-	rpg_trade_log("%s: story supplies %s -> with level %s (current %s)", npc:name(), story_str, str, tostring(tt.current_buy_supplies))
+	rpg_trade_log("%s: supplies %s (current %s)", npc:name(), str, tostring(tt.current_buy_supplies))
 	if tt.current_buy_supplies ~= str then
 		rpg_trade_log("%s: restocking from [%s]", npc:name(), str)
 		-- stalker-online: restock as soon as the supplies section changes (story

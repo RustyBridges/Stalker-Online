@@ -35,6 +35,10 @@ target_sources(xrGame PRIVATE
     actor_communication.cpp
     ActorCondition.cpp
     ActorRPG.cpp
+    ItemLoot.cpp
+    ItemLoot.h
+    ItemLootApply.cpp
+    ItemLootStats.h
     ActorRPG.h
     ActorCondition.h
     ActorCondition_script.cpp

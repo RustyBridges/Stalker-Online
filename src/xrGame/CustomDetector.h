@@ -291,6 +291,7 @@ protected:
 
 public:
     virtual ~CCustomDetector();
+    void loot_apply_stat(loot::EStat stat, float value) override; // stalker-online loot system
 
     virtual bool net_Spawn(CSE_Abstract* DC);
     virtual void Load(LPCSTR section);
