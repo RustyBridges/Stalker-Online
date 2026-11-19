@@ -477,10 +477,27 @@ bool xrDebug::DebuggerIsPresent()
 {
 #ifdef XR_PLATFORM_WINDOWS
     return IsDebuggerPresent();
+#elif defined(XR_PLATFORM_LINUX)
+    // Don't probe with ptrace(PTRACE_TRACEME): that makes the parent process
+    // (usually the shell) our tracer, and the following PTRACE_DETACH is a
+    // no-op when issued by the tracee. The process then stays traced and
+    // freezes in "tracing stop" on the next signal it receives (e.g. SIGWINCH
+    // when the terminal is resized). Read the tracer's pid from /proc instead.
+    FILE* status = fopen("/proc/self/status", "r");
+    if (!status)
+        return false;
+    int tracer_pid = 0;
+    char line[256];
+    while (fgets(line, sizeof(line), status))
+    {
+        if (sscanf(line, "TracerPid: %d", &tracer_pid) == 1)
+            break;
+    }
+    fclose(status);
+    return tracer_pid != 0;
 #elif defined(PTRACE_AVAILABLE)
-    if (ptrace(PTRACE_TRACEME, 0, 0, 0) == -1)
-        return true;
-    ptrace(PTRACE_DETACH, 0, 0, 0);
+    // PTRACE_TRACEME would attach our parent as a tracer (see the Linux branch
+    // above), so don't try to detect a debugger here.
     return false;
 #else
     return false;
