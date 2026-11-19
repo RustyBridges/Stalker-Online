@@ -5,6 +5,12 @@
 #include "entity_alive.h"
 #include "InventoryOwner.h"
 #include "Level.h"
+#include "xrAICore/Navigation/game_graph.h"
+#include "xrAICore/Navigation/level_graph.h"
+#include "xrServer_Objects_ALife_Monsters.h"
+#include "alife_object_registry.h"
+#include "alife_simulator.h"
+#include "ai_space.h"
 #include "game_news.h"
 #include "UIGameCustom.h"
 #include "ui/UIRPGBackgroundDlg.h"
@@ -432,20 +438,42 @@ public:
     }
     void Info(TInfo& I) override { xr_strcpy(I, "soldier | smuggler | scientist | drifter | none (resets skills)"); }
 };
-// Characters on the current level whose name contains `filter` (all if empty).
-xr_vector<CGameObject*> FindCharacters(pcstr filter)
+// Living characters on the current level whose name contains `filter` (all if
+// empty). Uses the A-Life registry, so characters far away (offline) count too.
+struct FoundCharacter
 {
-    xr_vector<CGameObject*> result;
-    const CActor* actor = g_actor;
-    for (u32 i = 0; i < Level().Objects.o_count(); ++i)
+    shared_str name;
+    Fvector position;
+    Fvector direction; // facing, if the character is online
+};
+
+xr_vector<FoundCharacter> FindCharacters(pcstr filter)
+{
+    xr_vector<FoundCharacter> result;
+    if (!ai().get_alife() || !ai().get_level_graph() || !g_actor)
+        return result;
+
+    const GameGraph::_LEVEL_ID level = ai().level_graph().level_id();
+    for (const auto& [id, obj] : ai().alife().objects().objects())
     {
-        auto* obj = smart_cast<CGameObject*>(Level().Objects.o_get_by_iterator(i));
-        auto* alive = smart_cast<CEntityAlive*>(obj);
-        if (!obj || obj == actor || !alive || !alive->g_Alive() || !smart_cast<CInventoryOwner*>(obj))
+        auto* creature = smart_cast<CSE_ALifeCreatureAbstract*>(obj);
+        if (!creature || !creature->g_Alive() || id == g_actor->ID() || !smart_cast<CSE_ALifeTraderAbstract*>(obj))
             continue;
-        if (filter && filter[0] && !strstr(obj->cName().c_str(), filter))
+        if (ai().game_graph().vertex(obj->m_tGraphID)->level_id() != level)
             continue;
-        result.push_back(obj);
+        pcstr name = obj->name_replace();
+        if (filter && filter[0] && !strstr(name, filter))
+            continue;
+
+        FoundCharacter& found = result.emplace_back();
+        found.name = name;
+        found.position = obj->o_Position;
+        found.direction.set(0.f, 0.f, 0.f);
+        if (auto* online = smart_cast<CGameObject*>(Level().Objects.net_Find(id)))
+        {
+            found.position = online->Position();
+            found.direction = online->XFORM().k;
+        }
     }
     return result;
 }
@@ -484,7 +512,7 @@ public:
         Msg("- %u character(s) on this level matching '%s':", u32(found.size()), filter);
         for (u32 i = 0; i < found.size() && i < 60; ++i)
         {
-            Msg("  %-40s %6.0f m", found[i]->cName().c_str(), found[i]->Position().distance_to(actor->Position()));
+            Msg("  %-40s %6.0f m", found[i].name.c_str(), found[i].position.distance_to(actor->Position()));
         }
     }
     void Info(TInfo& I) override { xr_strcpy(I, "<text> list living characters on this level whose name contains text"); }
@@ -509,26 +537,27 @@ public:
             return;
         }
         // Prefer an exact name match, otherwise the first partial match.
-        CGameObject* target = found.front();
-        for (CGameObject* obj : found)
+        const FoundCharacter* target = &found.front();
+        for (const FoundCharacter& c : found)
         {
-            if (0 == xr_strcmp(obj->cName().c_str(), filter))
+            if (0 == xr_strcmp(c.name.c_str(), filter))
             {
-                target = obj;
+                target = &c;
                 break;
             }
         }
-        // Stand a metre in front of them (traders usually face their customers).
-        Fvector dir = target->XFORM().k;
+        // Stand a metre in front of them (traders usually face their customers);
+        // offline characters have no facing, so step off to one side.
+        Fvector dir = target->direction;
         dir.y = 0.f;
         if (dir.square_magnitude() < EPS)
-            dir.set(0.f, 0.f, 1.f);
+            dir.set(1.f, 0.f, 0.f);
         dir.normalize();
         Fmatrix xform = actor->XFORM();
-        xform.c.mad(target->Position(), dir, 1.2f);
+        xform.c.mad(target->position, dir, 1.2f);
         xform.c.y += 0.1f;
         actor->ForceTransform(xform);
-        Msg("* rpg_goto: moved next to %s", target->cName().c_str());
+        Msg("* rpg_goto: moved next to %s", target->name.c_str());
     }
     void Info(TInfo& I) override { xr_strcpy(I, "<name> teleport next to a character on this level (testing)"); }
 };
