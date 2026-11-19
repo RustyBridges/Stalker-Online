@@ -4,13 +4,21 @@ name: Build
 #  - Windows x64 Release: the package for Windows players
 #  - Linux AppImage x64 Release: single-file Linux package (on NixOS: appimage-run)
 #  - Nix: same toolchain and libraries as `nix develop` on NixOS
+#
+# When a job fails, its build log is pushed to the branch ci-log-<job>
+# (build.log, errors.txt, INFO.txt), so it can be read with plain git
+# without access to the Actions UI. A successful job deletes that branch.
 
 on:
   push:
     branches-ignore:
       - "dependabot/*"
+      - "ci-log-*"
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: write # needed to push the ci-log-* branches
 
 jobs:
   windows:
@@ -31,7 +39,7 @@ jobs:
 
     - name: Build
       working-directory: src
-      run: msbuild /m /p:Configuration="Release" /p:Platform="x64" engine.sln
+      run: msbuild /m /p:Configuration="Release" /p:Platform="x64" engine.sln "-flp:LogFile=build.log;Verbosity=minimal"
 
     - name: Prepare artifacts
       shell: cmd
@@ -42,6 +50,32 @@ jobs:
       with:
         name: OpenXRay Windows x64 (github-${{ github.run_number }})
         path: res/OpenXRay.*.7z
+
+    - name: Publish failure log to branch ci-log-${{ github.job }}
+      if: failure()
+      shell: bash
+      env:
+        LOG: src/build.log
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+          dir="$RUNNER_TEMP/cilog"; rm -rf "$dir"; mkdir -p "$dir"
+          if [ -f "$LOG" ]; then
+              cp "$LOG" "$dir/build.log"
+              grep -nE "error|FAILED|fatal" "$LOG" | head -300 > "$dir/errors.txt" || true
+          else
+              echo "No build log: the job failed before the build step." > "$dir/build.log"
+          fi
+          printf 'run %s\ncommit %s\njob %s\n' "${{ github.run_number }}" "${{ github.sha }}" "${{ github.job }}" > "$dir/INFO.txt"
+          cd "$dir"
+          git init -q && git checkout -q -b log
+          git -c user.name=ci -c user.email=ci@localhost add -A
+          git -c user.name=ci -c user.email=ci@localhost commit -qm "CI failure log: ${{ github.job }} run ${{ github.run_number }}"
+          git push -qf "https://x-access-token:${TOKEN}@github.com/${{ github.repository }}" log:refs/heads/ci-log-${{ github.job }}
+
+    - name: Remove old failure log branch
+      if: success()
+      shell: bash
+      run: git push -q origin --delete ci-log-${{ github.job }} 2>/dev/null || true
 
   appimage:
     name: Linux AppImage Release x64
@@ -68,10 +102,14 @@ jobs:
         submodules: recursive
 
     - name: Run CMake
-      run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DBUILD_SHARED_LIBS=OFF
+      run: |
+          set -o pipefail
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DBUILD_SHARED_LIBS=OFF 2>&1 | tee build.log
 
     - name: Run CMake Build
-      run: cmake --build build --config Release --parallel 4
+      run: |
+          set -o pipefail
+          cmake --build build --config Release --parallel 4 2>&1 | tee -a build.log
 
     - name: Make AppImage
       run: |
@@ -86,6 +124,32 @@ jobs:
         name: OpenXRay Linux AppImage x64 (github-${{ github.run_number }})
         path: build/artifacts/openxray*.AppImage
 
+    - name: Publish failure log to branch ci-log-${{ github.job }}
+      if: failure()
+      shell: bash
+      env:
+        LOG: build.log
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+          dir="$RUNNER_TEMP/cilog"; rm -rf "$dir"; mkdir -p "$dir"
+          if [ -f "$LOG" ]; then
+              cp "$LOG" "$dir/build.log"
+              grep -nE "error|FAILED|fatal" "$LOG" | head -300 > "$dir/errors.txt" || true
+          else
+              echo "No build log: the job failed before the build step." > "$dir/build.log"
+          fi
+          printf 'run %s\ncommit %s\njob %s\n' "${{ github.run_number }}" "${{ github.sha }}" "${{ github.job }}" > "$dir/INFO.txt"
+          cd "$dir"
+          git init -q && git checkout -q -b log
+          git -c user.name=ci -c user.email=ci@localhost add -A
+          git -c user.name=ci -c user.email=ci@localhost commit -qm "CI failure log: ${{ github.job }} run ${{ github.run_number }}"
+          git push -qf "https://x-access-token:${TOKEN}@github.com/${{ github.repository }}" log:refs/heads/ci-log-${{ github.job }}
+
+    - name: Remove old failure log branch
+      if: success()
+      shell: bash
+      run: git push -q origin --delete ci-log-${{ github.job }} 2>/dev/null || true
+
   nix:
     name: Nix (same toolchain as NixOS)
     runs-on: ubuntu-latest
@@ -99,5 +163,32 @@ jobs:
 
     - name: Build in the flake's dev shell
       run: |
-          nix develop --command cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
-          nix develop --command cmake --build build
+          set -o pipefail
+          nix develop --command cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo 2>&1 | tee build.log
+          nix develop --command cmake --build build 2>&1 | tee -a build.log
+
+    - name: Publish failure log to branch ci-log-${{ github.job }}
+      if: failure()
+      shell: bash
+      env:
+        LOG: build.log
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+          dir="$RUNNER_TEMP/cilog"; rm -rf "$dir"; mkdir -p "$dir"
+          if [ -f "$LOG" ]; then
+              cp "$LOG" "$dir/build.log"
+              grep -nE "error|FAILED|fatal" "$LOG" | head -300 > "$dir/errors.txt" || true
+          else
+              echo "No build log: the job failed before the build step." > "$dir/build.log"
+          fi
+          printf 'run %s\ncommit %s\njob %s\n' "${{ github.run_number }}" "${{ github.sha }}" "${{ github.job }}" > "$dir/INFO.txt"
+          cd "$dir"
+          git init -q && git checkout -q -b log
+          git -c user.name=ci -c user.email=ci@localhost add -A
+          git -c user.name=ci -c user.email=ci@localhost commit -qm "CI failure log: ${{ github.job }} run ${{ github.run_number }}"
+          git push -qf "https://x-access-token:${TOKEN}@github.com/${{ github.repository }}" log:refs/heads/ci-log-${{ github.job }}
+
+    - name: Remove old failure log branch
+      if: success()
+      shell: bash
+      run: git push -q origin --delete ci-log-${{ github.job }} 2>/dev/null || true
