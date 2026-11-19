@@ -9,6 +9,7 @@
 #include "pch_script.h"
 #include "Level.h"
 #include "Actor.h"
+#include "ActorRPG.h"
 #include "script_game_object.h"
 #include "script_game_object_impl.h"
 #include "xrAICore/Navigation/PatrolPath/patrol_path_storage.h"
@@ -677,6 +678,35 @@ void jump_to_level(const Fvector& m_position, u32 m_level_vertex_id, GameGraph::
 template<typename T>
 struct EnumCallbackType {};
 
+// RPG progression for scripts: rpg.level(), rpg.skill(id), rpg.background(), rpg.train(id, uses)
+static u32 rpg_level()
+{
+    const CActor* actor = Actor();
+    return actor ? actor->RPG().Level() : 1;
+}
+
+static u32 rpg_skill(pcstr id)
+{
+    rpg::ESkill skill;
+    const CActor* actor = Actor();
+    if (!actor || !id || !rpg::ParseSkill(id, skill))
+        return 0;
+    return actor->RPG().Skill(skill);
+}
+
+static pcstr rpg_background()
+{
+    const CActor* actor = Actor();
+    return rpg::BackgroundId(actor ? actor->RPG().Background() : rpg::eBgNone);
+}
+
+static void rpg_train(pcstr id, float uses)
+{
+    rpg::ESkill skill;
+    if (CActor* actor = Actor(); actor && id && rpg::ParseSkill(id, skill))
+        actor->RPG().Train(skill, uses);
+}
+
 void CLevel::script_register(lua_State* luaState)
 {
     using namespace luabind;
@@ -873,6 +903,14 @@ void CLevel::script_register(lua_State* luaState)
         }),
         def("game_id", &GameID),
         def("ray_pick", &ray_pick)
+    ];
+
+    module(luaState, "rpg")
+    [
+        def("level", &rpg_level),
+        def("skill", &rpg_skill),
+        def("background", &rpg_background),
+        def("train", &rpg_train)
     ];
 
     module(luaState, "actor_stats")
