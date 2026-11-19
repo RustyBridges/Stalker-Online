@@ -94,7 +94,7 @@ IClient* xrServer::client_Create() { return xr_new<xrClientData>(); }
 void xrServer::client_Replicate() {}
 IClient* xrServer::client_Find_Get(ClientID ID)
 {
-    DWORD dwPort = 0;
+    u32 dwPort = 0;
     ip_address tmp_ip_address;
 
     if (!psNET_direct_connect)

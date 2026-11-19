@@ -1184,7 +1184,7 @@ public:
                 if (!l_pC)
                     return;
                 ip_address Address;
-                DWORD dwPort = 0;
+                u32 dwPort = 0;
                 Level().Server->GetClientAddress(client->ID, Address, &dwPort);
                 string512 tmp_string;
                 xr_sprintf(tmp_string, "- (player session id : %u), (name : %s), (ip: %s), (ping: %u);",
