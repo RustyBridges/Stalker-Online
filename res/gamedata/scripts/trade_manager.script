@@ -45,8 +45,15 @@ local function apply_rpg_supplies(config, section)
 end
 
 -- rpg_debug 1 in the console: traders re-check stock on every update (testing)
+-- and the stock decisions are written to the log.
 local function rpg_trade_debug()
 	return rpg ~= nil and rpg.debug()
+end
+
+local function rpg_trade_log(fmt, ...)
+	if rpg_trade_debug() then
+		log(string.format("* RPG trade: " .. fmt, ...))
+	end
 end
 -- end of stalker-online RPG systems
 
@@ -93,8 +100,10 @@ function update(npc)
 
 	if tt == nil then
 		printf("TRADE [%s]:  tt is nil", npc:name())
+		rpg_trade_log("%s: update called, but the trader was never initialised", npc:name())
 		return
 	end
+	rpg_trade_log("%s: update (config %s, level %d)", npc:name(), tostring(tt.cfg_ltx), rpg ~= nil and rpg.level() or 0)
 
 	-- stalker-online: the original check was inverted (it skipped updates once
 	-- the hour had passed, so traders stopped updating after the first hour).
@@ -132,6 +141,7 @@ function update(npc)
 	end
 
 	if tt.buy_supplies == nil then
+		rpg_trade_log("%s: no buy_supplies in its trade config, stock never changes", npc:name())
 		return
 	end
 
@@ -139,8 +149,11 @@ function update(npc)
 	if(str=="" or str==nil) then
 		abort("Wrong section in buy_condition condlist for npc [%s]!", npc:name())
 	end
+	local story_str = str
 	str = apply_rpg_supplies(tt.config, str) -- stalker-online RPG systems
+	rpg_trade_log("%s: story supplies %s -> with level %s (current %s)", npc:name(), story_str, str, tostring(tt.current_buy_supplies))
 	if tt.current_buy_supplies ~= str then
+		rpg_trade_log("%s: restocking from [%s]", npc:name(), str)
 		-- stalker-online: restock as soon as the supplies section changes (story
 		-- progress or a new character level). The original guard here was inverted
 		-- and blocked restocks once its timer expired.
