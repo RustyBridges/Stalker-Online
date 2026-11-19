@@ -19,6 +19,12 @@ int Percent(float k) { return iFloor((k - 1.f) * 100.f + (k >= 1.f ? 0.5f : -0.5
 
 void EffectText(const CActorRPG& rpg, ESkill skill, string256& out)
 {
+    if (rpg.Mastery(skill) <= 0.f)
+    {
+        xr_strcpy(out, "No effect yet");
+        return;
+    }
+
     switch (skill)
     {
     case eMarksmanship:

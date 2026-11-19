@@ -39,6 +39,9 @@
 		<text font="letterica18" r="200" g="200" b="200" align="l"/>
 	</skill_value>
 	<skill_bar x="340" y="146" width="380" height="10" horz="1" min="0" max="100">
+		<background>
+			<texture r="70" g="70" b="70" a="140">ui_patch_progress</texture>
+		</background>
 		<progress>
 			<texture>ui_patch_progress</texture>
 		</progress>
