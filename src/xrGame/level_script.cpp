@@ -681,14 +681,14 @@ struct EnumCallbackType {};
 // RPG progression for scripts: rpg.level(), rpg.skill(id), rpg.background(), rpg.train(id, uses)
 static u32 rpg_level()
 {
-    const CActor* actor = Actor();
+    const CActor* actor = g_actor;
     return actor ? actor->RPG().Level() : 1;
 }
 
 static u32 rpg_skill(pcstr id)
 {
     rpg::ESkill skill;
-    const CActor* actor = Actor();
+    const CActor* actor = g_actor;
     if (!actor || !id || !rpg::ParseSkill(id, skill))
         return 0;
     return actor->RPG().Skill(skill);
@@ -696,7 +696,7 @@ static u32 rpg_skill(pcstr id)
 
 static pcstr rpg_background()
 {
-    const CActor* actor = Actor();
+    const CActor* actor = g_actor;
     return rpg::BackgroundId(actor ? actor->RPG().Background() : rpg::eBgNone);
 }
 
@@ -705,7 +705,7 @@ static bool rpg_debug() { return rpg::g_debug != 0; }
 static void rpg_train(pcstr id, float uses)
 {
     rpg::ESkill skill;
-    if (CActor* actor = Actor(); actor && id && rpg::ParseSkill(id, skill))
+    if (CActor* actor = g_actor; actor && id && rpg::ParseSkill(id, skill))
         actor->RPG().Train(skill, uses);
 }
 

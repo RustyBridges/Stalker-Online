@@ -340,8 +340,8 @@ float CVisualMemoryManager::get_visible_value(const CGameObject* game_object,
             (distance - always_visible_distance);
 
     // RPG: Stealth makes others notice the player more slowly
-    if (game_object && game_object == Actor())
-        value *= Actor()->RPG().DetectionK();
+    if (game_object && game_object == g_actor)
+        value *= g_actor->RPG().DetectionK();
 
     return value;
 }
@@ -431,7 +431,7 @@ bool CVisualMemoryManager::visible(const CGameObject* game_object, float time_de
     // RPG: Stealth grows while crouching in a hostile's view without being noticed yet
     if (!is_visible && IsGameTypeSingle() && m_object && m_object->g_Alive())
     {
-        CActor* actor = Actor();
+        CActor* actor = g_actor;
         if (actor && game_object == actor && (actor->MovingState() & mcCrouch) && m_object->is_relation_enemy(actor))
             actor->RPG().TrainTimed(rpg::eStealth, 0.1f, 1000);
     }

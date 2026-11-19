@@ -82,7 +82,7 @@ void CUIRPGBackgroundDlg::Choose(u8 background)
 {
     HideDialog();
 
-    CActor* actor = Actor();
+    CActor* actor = g_actor;
     if (!actor)
         return;
 

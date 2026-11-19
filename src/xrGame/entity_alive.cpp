@@ -267,7 +267,7 @@ void CEntityAlive::HitImpulse(float /**amount**/, Fvector& /**vWorldDir**/, Fvec
 // RPG: player skills applied to hits (see ActorRPG.h)
 static void RPG_OnHit(CEntityAlive* victim, SHit& hit)
 {
-    CActor* actor = Actor();
+    CActor* actor = g_actor;
     if (!actor || !IsGameTypeSingle() || !victim->g_Alive() || hit.power <= 0.f)
         return;
 

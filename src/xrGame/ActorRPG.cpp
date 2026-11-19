@@ -229,7 +229,7 @@ void CActorRPG::OnSkillUp(ESkill skill, u32 old_level)
 
 void CActorRPG::SendNews(pcstr caption, pcstr text) const
 {
-    if (!m_owner || m_owner != Actor())
+    if (!m_owner || m_owner != g_actor)
         return;
 
     GAME_NEWS_DATA news;
@@ -242,7 +242,7 @@ void CActorRPG::SendNews(pcstr caption, pcstr text) const
 
 void CActorRPG::OnSpawn()
 {
-    if (m_background != eBgNone || !m_owner || m_owner != Actor())
+    if (m_background != eBgNone || !m_owner || m_owner != g_actor)
         return;
     // Offer the background dialog a few seconds after loading in.
     m_offer_background_at = Device.dwTimeGlobal + 5000;
@@ -361,7 +361,7 @@ namespace
 {
 CActorRPG* ConsoleRPG()
 {
-    CActor* actor = Actor();
+    CActor* actor = g_actor;
     if (!actor)
     {
         Msg("! RPG: load or start a game first");
@@ -436,7 +436,7 @@ public:
 xr_vector<CGameObject*> FindCharacters(pcstr filter)
 {
     xr_vector<CGameObject*> result;
-    const CActor* actor = Actor();
+    const CActor* actor = g_actor;
     for (u32 i = 0; i < Level().Objects.o_count(); ++i)
     {
         auto* obj = smart_cast<CGameObject*>(Level().Objects.o_get_by_iterator(i));
@@ -474,7 +474,7 @@ public:
     CCC_RPG_Find(pcstr name) : IConsole_Command(name) { bEmptyArgsHandled = true; }
     void Execute(pcstr args) override
     {
-        const CActor* actor = Actor();
+        const CActor* actor = g_actor;
         if (!actor)
             return;
         string256 filter;
@@ -496,7 +496,7 @@ public:
     CCC_RPG_Goto(pcstr name) : IConsole_Command(name) {}
     void Execute(pcstr args) override
     {
-        CActor* actor = Actor();
+        CActor* actor = g_actor;
         if (!actor)
             return;
         string256 filter;

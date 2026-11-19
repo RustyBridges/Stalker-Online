@@ -119,7 +119,7 @@ void CUICharacterRPGWnd::Refresh()
 {
     m_last_update = Device.dwTimeGlobal;
 
-    const CActor* actor = Actor();
+    const CActor* actor = g_actor;
     if (!actor)
         return;
     const CActorRPG& rpg = actor->RPG();

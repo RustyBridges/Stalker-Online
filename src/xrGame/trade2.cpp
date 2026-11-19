@@ -73,7 +73,7 @@ void CTrade::TransferItem(CInventoryItem* pItem, bool bBuying, bool bFree /*= fa
     // RPG: completed deals train Barter; selling artefacts trains Artefact lore
     if (!bFree && dwTransferMoney > 0 && IsGameTypeSingle() && (pThis.type == TT_ACTOR || pPartner.type == TT_ACTOR))
     {
-        if (CActor* actor = Actor())
+        if (CActor* actor = g_actor)
         {
             actor->RPG().Train(rpg::eBarter, std::min(float(dwTransferMoney) / 2000.f, 2.f));
             const bool actor_sells = (pThis.type == TT_ACTOR) ? !bBuying : bBuying;
@@ -255,7 +255,7 @@ u32 CTrade::GetItemPrice(PIItem pItem, bool b_buying, bool bFree /*= false*/)
     // RPG: Barter (and Artefact lore when selling artefacts)
     if (is_actor && IsGameTypeSingle())
     {
-        if (const CActor* actor = Actor())
+        if (const CActor* actor = g_actor)
         {
             const bool actor_buys = (pThis.type == TT_ACTOR) ? b_buying : !b_buying;
             float k = actor_buys ? actor->RPG().BuyPriceK() : actor->RPG().SellPriceK();
