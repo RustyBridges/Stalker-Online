@@ -11,7 +11,8 @@
       devShells = forAll (pkgs: {
         # GCC, not Clang: Clang builds hit an assertion (OpenXRay issue #1224).
         default = pkgs.mkShell.override { stdenv = pkgs.gccStdenv; } {
-          nativeBuildInputs = with pkgs; [ cmake ninja pkg-config git gdb ];
+          # ccache: picked up automatically by OpenXRay's CMake (cmake/XRay.Compiler.GNULike.cmake)
+          nativeBuildInputs = with pkgs; [ cmake ninja pkg-config git gdb ccache ];
           buildInputs = with pkgs; [
             SDL2 openal glew liblockfile
             libogg libvorbis libtheora
