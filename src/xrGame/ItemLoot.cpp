@@ -219,7 +219,7 @@ u32 KindOf(CInventoryItem& item)
 {
     if (auto* weapon = smart_cast<CWeapon*>(&item))
     {
-        if (smart_cast<CWeaponBinocular*>(weapon) || smart_cast<CWeaponKnife*>(weapon))
+        if (smart_cast<CWeaponBinoculars*>(weapon) || smart_cast<CWeaponKnife*>(weapon))
             return kNone;
         return kWeapon;
     }
@@ -435,7 +435,9 @@ void SpawnForActor(pcstr section, int rarity /* -1 = roll normally */)
         Msg("! loot: no item section [%s]", section);
         return;
     }
-    CSE_Abstract* e = ai().alife().spawn_item(section, actor->Position(), actor->ai_location().level_vertex_id(),
+    // Same as the scripts' alife(): spawning needs a non-const simulator.
+    auto* alife = const_cast<CALifeSimulator*>(ai().get_alife());
+    CSE_Abstract* e = alife->spawn_item(section, actor->Position(), actor->ai_location().level_vertex_id(),
         actor->ai_location().game_vertex_id(), actor->ID());
     if (e && rarity >= 0)
         loot::ForceNextRarity(e->ID, loot::ERarity(rarity));
