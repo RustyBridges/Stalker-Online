@@ -3,6 +3,8 @@
 #include "ActorRPG.h"
 #include "Actor.h"
 #include "game_news.h"
+#include "UIGameCustom.h"
+#include "ui/UIRPGBackgroundDlg.h"
 #include "xrEngine/XR_IOConsole.h"
 #include "xrEngine/xr_ioc_cmd.h"
 
@@ -84,6 +86,11 @@ bool ParseBackground(pcstr text, EBackground& bg)
 } // namespace rpg
 
 CActorRPG::CActorRPG(CActor* owner) : m_owner(owner) {}
+
+CActorRPG::~CActorRPG()
+{
+    xr_delete(m_background_dlg);
+}
 
 void CActorRPG::SetBackground(EBackground bg)
 {
@@ -227,8 +234,40 @@ void CActorRPG::OnSpawn()
 {
     if (m_background != eBgNone || !m_owner || m_owner != Actor())
         return;
+    // Offer the background dialog a few seconds after loading in.
+    m_offer_background_at = Device.dwTimeGlobal + 5000;
+}
 
-    // Until the New Game dialog exists: tell the player how to pick a background.
+void CActorRPG::Update()
+{
+    if (!m_offer_background_at || Device.dwTimeGlobal < m_offer_background_at)
+        return;
+    if (m_background != eBgNone)
+    {
+        m_offer_background_at = 0;
+        return;
+    }
+    // Wait until the game UI is up and no other dialog (PDA, trade, ...) is open.
+    if (!CurrentGameUI() || CurrentGameUI()->TopInputReceiver() || !m_owner->g_Alive())
+        return;
+
+    m_offer_background_at = 0;
+
+    if (!m_background_dlg)
+    {
+        m_background_dlg = xr_new<CUIRPGBackgroundDlg>();
+        if (!m_background_dlg->Init())
+        {
+            xr_delete(m_background_dlg);
+            SendBackgroundHint(); // layout missing: fall back to the console hint
+            return;
+        }
+    }
+    m_background_dlg->ShowDialog(true);
+}
+
+void CActorRPG::SendBackgroundHint() const
+{
     GAME_NEWS_DATA news;
     news.m_type = GAME_NEWS_DATA::eNews;
     news.news_caption = "Choose a background";
@@ -236,7 +275,7 @@ void CActorRPG::OnSpawn()
                      "scientist or drifter. Type rpg_sheet to see your character.";
     news.texture_name = m_owner->IconName();
     news.show_time = 15000;
-    m_owner->AddGameNews_deffered(std::move(news), 5000);
+    m_owner->AddGameNews(std::move(news));
 }
 
 void CActorRPG::LogSheet() const

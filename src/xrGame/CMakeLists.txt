@@ -2298,6 +2298,8 @@ target_sources(xrGame PRIVATE
     ui/UIRankIndicator.h
     ui/UIRankingsCoC.cpp
     ui/UIRankingsCoC.h
+    ui/UICharacterRPGWnd.cpp
+    ui/UICharacterRPGWnd.h
     ui/UIRankingWnd.cpp
     ui/UIRankingWnd.h
     ui/UIScriptWnd.cpp
@@ -2305,6 +2307,8 @@ target_sources(xrGame PRIVATE
     ui/UIScriptWnd_script.cpp
     ui/UISecondTaskWnd.cpp
     ui/UISecondTaskWnd.h
+    ui/UIRPGBackgroundDlg.cpp
+    ui/UIRPGBackgroundDlg.h
     ui/UIServerInfo.cpp
     ui/UIServerInfo.h
     ui/UISkinSelector.cpp

@@ -9,6 +9,7 @@
 class CActor;
 class NET_Packet;
 class IReader;
+class CUIRPGBackgroundDlg;
 
 namespace rpg
 {
@@ -53,6 +54,7 @@ class CActorRPG
 {
 public:
     explicit CActorRPG(CActor* owner);
+    ~CActorRPG();
 
     // --- state ---------------------------------------------------------------
     rpg::EBackground Background() const { return m_background; }
@@ -97,6 +99,8 @@ public:
 
     // Called when the player spawns (new game or loaded save).
     void OnSpawn();
+    // Called every frame from CActor::UpdateCL (offers the background dialog).
+    void Update();
 
 private:
     struct SkillState
@@ -111,6 +115,11 @@ private:
     u32 m_points_gained{}; // points gained by use (head start excluded); drives the level
     u32 m_last_train_time[rpg::eSkillCount]{}; // for TrainTimed, not saved
     xr_set<u16> m_found_artefacts; // artefacts already credited to Artefact lore
+
+    u32 m_offer_background_at{}; // time to show the background dialog, 0 = not pending
+    CUIRPGBackgroundDlg* m_background_dlg{};
+
+    void SendBackgroundHint() const;
 
     static float UsesForNextPoint(u8 value);
     void OnSkillUp(rpg::ESkill skill, u32 old_level);

@@ -1056,6 +1056,9 @@ float CActor::currentFOV()
 
 void CActor::UpdateCL()
 {
+    if (IsGameTypeSingle() && Level().CurrentViewEntity() == this)
+        m_rpg->Update();
+
     if (g_Alive() && Level().CurrentViewEntity() == this)
     {
         if (CurrentGameUI() && !CurrentGameUI()->TopInputReceiver() && !m_holder)

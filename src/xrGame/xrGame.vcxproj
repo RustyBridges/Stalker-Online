@@ -1320,6 +1320,8 @@
     <ClInclude Include="ui\UIRankIndicator.h" />
     <ClInclude Include="ui\UIRankingsCoC.h" />
     <ClInclude Include="ui\UIRankingWnd.h" />
+    <ClInclude Include="ui\UICharacterRPGWnd.h" />
+    <ClInclude Include="ui\UIRPGBackgroundDlg.h" />
     <ClInclude Include="ui\UIScriptWnd.h" />
     <ClInclude Include="ui\UISecondTaskWnd.h" />
     <ClInclude Include="ui\UIServerInfo.h" />
@@ -3194,6 +3196,8 @@
     <ClCompile Include="ui\UIRankFaction.cpp" />
     <ClCompile Include="ui\UIRankIndicator.cpp" />
     <ClCompile Include="ui\UIRankingsCoC.cpp" />
+    <ClCompile Include="ui\UICharacterRPGWnd.cpp" />
+    <ClCompile Include="ui\UIRPGBackgroundDlg.cpp" />
     <ClCompile Include="ui\UIRankingWnd.cpp">
       <PrecompiledHeaderFile>pch_script.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName)_script.pch</PrecompiledHeaderOutputFile>

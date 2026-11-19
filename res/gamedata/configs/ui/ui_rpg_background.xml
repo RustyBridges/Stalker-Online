@@ -1,0 +1,52 @@
+<w>
+	<!-- Background choice dialog (stalker-online RPG systems), see src/xrGame/ui/UIRPGBackgroundDlg.cpp -->
+	<main_wnd x="0" y="0" width="1024" height="768"/>
+
+	<form x="212" y="144" width="600" height="480" stretch="1">
+		<texture>ui_inGame2_main_window_small</texture>
+	</form>
+
+	<caption x="212" y="166" width="600" height="30">
+		<text font="graffiti32" align="c">Choose your background</text>
+	</caption>
+
+	<intro x="242" y="206" width="540" height="40" complex_mode="1">
+		<text font="letterica16" r="200" g="200" b="200" align="l">Where you came from shapes your first steps in the Zone. Everything else you learn by doing.</text>
+	</intro>
+
+	<btn_soldier x="242" y="262" width="170" height="26">
+		<texture>ui_inGame2_Mp_bigbuttone</texture>
+		<text font="letterica18">Ex-soldier</text>
+	</btn_soldier>
+	<desc_soldier x="424" y="260" width="358" height="56" complex_mode="1">
+		<text font="letterica16" r="190" g="190" b="190" align="l">Head start in Marksmanship and Endurance. You know how to shoot and how to keep moving.</text>
+	</desc_soldier>
+
+	<btn_smuggler x="242" y="326" width="170" height="26">
+		<texture>ui_inGame2_Mp_bigbuttone</texture>
+		<text font="letterica18">Smuggler</text>
+	</btn_smuggler>
+	<desc_smuggler x="424" y="324" width="358" height="56" complex_mode="1">
+		<text font="letterica16" r="190" g="190" b="190" align="l">Head start in Barter and Stealth. You get good prices and you are hard to spot.</text>
+	</desc_smuggler>
+
+	<btn_scientist x="242" y="390" width="170" height="26">
+		<texture>ui_inGame2_Mp_bigbuttone</texture>
+		<text font="letterica18">Scientist's assistant</text>
+	</btn_scientist>
+	<desc_scientist x="424" y="388" width="358" height="56" complex_mode="1">
+		<text font="letterica16" r="190" g="190" b="190" align="l">Head start in Artefact lore and First aid. You know what artefacts are worth and how to patch people up.</text>
+	</desc_scientist>
+
+	<btn_drifter x="242" y="454" width="170" height="26">
+		<texture>ui_inGame2_Mp_bigbuttone</texture>
+		<text font="letterica18">Drifter</text>
+	</btn_drifter>
+	<desc_drifter x="424" y="452" width="358" height="56" complex_mode="1">
+		<text font="letterica16" r="190" g="190" b="190" align="l">Head start in Endurance and Resilience. Long walks, bad weather and radiation are nothing new to you.</text>
+	</desc_drifter>
+
+	<footer x="242" y="534" width="540" height="40" complex_mode="1">
+		<text font="letterica16" r="140" g="140" b="140" align="l">Close this window to decide later. Your skills are shown in the PDA, on the Character tab.</text>
+	</footer>
+</w>

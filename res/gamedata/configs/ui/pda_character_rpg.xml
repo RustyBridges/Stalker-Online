@@ -1,0 +1,49 @@
+<w>
+	<!-- PDA "Character" tab (stalker-online RPG systems), see src/xrGame/ui/UICharacterRPGWnd.cpp.
+	     Skill rows are built from the skill_* nodes, each next row row_height lower. -->
+	<main_wnd x="42" y="92" width="941" height="600" row_height="52"/>
+
+	<background x="0" y="0" width="941" height="600">
+		<texture>ui_inGame2_servers_list_frame</texture>
+	</background>
+
+	<caption x="20" y="12" width="901" height="30">
+		<text font="graffiti22" r="220" g="220" b="220" align="l">Character</text>
+	</caption>
+
+	<background_caption x="20" y="52" width="120" height="20">
+		<text font="letterica18" r="170" g="170" b="170" align="l">Background:</text>
+	</background_caption>
+	<background_value x="140" y="52" width="400" height="20">
+		<text font="letterica18" r="240" g="240" b="240" align="l"/>
+	</background_value>
+
+	<level_caption x="20" y="76" width="120" height="20">
+		<text font="letterica18" r="170" g="170" b="170" align="l">Level:</text>
+	</level_caption>
+	<level_value x="140" y="76" width="50" height="20">
+		<text font="letterica18" r="240" g="240" b="240" align="l"/>
+	</level_value>
+	<next_level_value x="200" y="78" width="400" height="20">
+		<text font="letterica16" r="150" g="150" b="150" align="l"/>
+	</next_level_value>
+
+	<skills_caption x="20" y="110" width="300" height="24">
+		<text font="graffiti22" r="220" g="220" b="220" align="l">Skills</text>
+	</skills_caption>
+
+	<skill_name x="20" y="140" width="200" height="20">
+		<text font="letterica18" r="240" g="240" b="240" align="l"/>
+	</skill_name>
+	<skill_value x="220" y="140" width="110" height="20">
+		<text font="letterica18" r="200" g="200" b="200" align="l"/>
+	</skill_value>
+	<skill_bar x="340" y="146" width="560" height="10" horz="1" min="0" max="100">
+		<progress>
+			<texture>ui_patch_progress</texture>
+		</progress>
+	</skill_bar>
+	<skill_effect x="40" y="162" width="860" height="18">
+		<text font="letterica16" r="150" g="150" b="150" align="l"/>
+	</skill_effect>
+</w>

@@ -27,6 +27,7 @@
 #include "UIFactionWarWnd.h"
 #include "UIActorInfo.h"
 #include "UIRankingWnd.h"
+#include "UICharacterRPGWnd.h"
 #include "UILogsWnd.h"
 #include "UIScriptWnd.h"
 
@@ -61,6 +62,8 @@ CUIPdaWnd::~CUIPdaWnd()
         delete_data(pUIActorInfo);
     if (pUIRankingWnd)
         delete_data(pUIRankingWnd);
+    if (pUICharacterRPGWnd)
+        delete_data(pUICharacterRPGWnd);
     if (pUILogsWnd)
         delete_data(pUILogsWnd);
     delete_data(m_hint_wnd);
@@ -137,6 +140,10 @@ void CUIPdaWnd::Init()
         pUIRankingWnd = xr_new<CUIRankingWnd>();
         if (!pUIRankingWnd->Init())
             xr_delete(pUIRankingWnd);
+
+        pUICharacterRPGWnd = xr_new<CUICharacterRPGWnd>();
+        if (!pUICharacterRPGWnd->Init())
+            xr_delete(pUICharacterRPGWnd);
 
         pUILogsWnd = xr_new<CUILogsWnd>();
         if (!pUILogsWnd->Init())
@@ -288,6 +295,7 @@ void CUIPdaWnd::SetActiveSubdialog(const shared_str& section)
         { "eptStatistics",  "ui_pda_actor_info", pUIActorInfo },
         { "eptRanking",     nullptr, pUIRankingWnd },
         { "eptLogs",        nullptr, pUILogsWnd },
+        { "eptCharacter",   nullptr, pUICharacterRPGWnd },
     };
 
     pcstr soc_infoportion{};

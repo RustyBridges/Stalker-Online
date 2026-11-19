@@ -16,6 +16,7 @@ class CUITaskWnd;
 class CUIFactionWarWnd;
 class CUIActorInfoWnd;
 class CUIRankingWnd;
+class CUICharacterRPGWnd;
 class CUILogsWnd;
 class CUIAnimatedStatic;
 class UIHint;
@@ -48,6 +49,7 @@ public:
     CUIFactionWarWnd* pUIFactionWarWnd;
     CUIActorInfoWnd* pUIActorInfo;
     CUIRankingWnd* pUIRankingWnd;
+    CUICharacterRPGWnd* pUICharacterRPGWnd{};
     CUILogsWnd* pUILogsWnd;
 
     virtual void Reset();
